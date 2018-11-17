@@ -2,6 +2,7 @@ package gonoolite
 
 import (
 	"fmt"
+	"time"
 
 	"go.bug.st/serial.v1"
 )
@@ -55,10 +56,10 @@ func (this *GoNoolite) sendCmd(content [14]byte) (err error) {
 	if err != nil {
 		return err
 	}
-
+	time.Sleep(time.Millisecond * 300) //TODO
 	n, err = this.port.Read(buff)
 	if err == nil && n != 17 {
-		err = fmt.Errorf("cannot send data to serial port")
+		err = fmt.Errorf("cannot receive answer from module. rcv count=%v", n)
 	}
 	if err != nil {
 		return err
