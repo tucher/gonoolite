@@ -1,10 +1,5 @@
 package gonoolite
 
-import (
-	"fmt"
-	"io"
-)
-
 type Request struct {
 	content [14]byte
 }
@@ -51,18 +46,17 @@ func (t *Request) Channel(channel int) *Request {
 }
 
 func (t *Request) Address(addr uint32) *Request {
-	var i uint
-	for i = 3; i >= 0; i-- {
-		t.content[13-i] = byte(addr << (8 * i))
+	for i := 3; i >= 0; i-- {
+		t.content[13-i] = byte(addr >> uint(8*i))
 	}
 	return t
 }
 
 func (t *Request) Data(b0 byte, b1 byte, b2 byte, b3 byte) *Request {
 	t.content[6] = b0
-	t.content[7] = b0
-	t.content[8] = b0
-	t.content[9] = b0
+	t.content[7] = b1
+	t.content[8] = b2
+	t.content[9] = b3
 	return t
 }
 
@@ -71,7 +65,7 @@ func (t *Request) CommandToSend(cmd EnumCMD) *Request {
 	return t
 }
 
-func (t *Request) Send(writer io.Writer) error {
+func (t *Request) Serialize() []byte {
 	buff := make([]byte, 17)
 	buff[0] = 171
 	buff[16] = 172
@@ -81,10 +75,5 @@ func (t *Request) Send(writer io.Writer) error {
 		sum += int(t.content[i])
 	}
 	buff[15] = byte(sum % 256)
-	n := 0
-	n, err := writer.Write(buff)
-	if err == nil && n != len(buff) {
-		err = fmt.Errorf("cannot send data to serial port")
-	}
-	return err
+	return buff
 }

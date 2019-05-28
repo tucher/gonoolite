@@ -38,6 +38,14 @@ func (r *Response) Command() EnumCMD {
 	return EnumCMD(r.content[4])
 }
 
+func (r *Response) DevID() uint32 {
+	ret := uint32(0)
+	for i := 13; i >= 10; i-- {
+		ret += uint32(r.content[i]) << (8 * uint(13-i))
+	}
+	return ret
+}
+
 func (t *Response) parseAnswer(content []byte) error {
 
 	if len(content) != 17 {
