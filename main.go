@@ -152,7 +152,7 @@ func (t *GoNoolite) IsPolling() bool {
 	return t.checking
 }
 
-func (t *GoNoolite) SetState(channel int, st bool) {
+func (t *GoNoolite) SetChannelState(channel int, st bool) {
 	r := Request{}
 	r.Mode(FTX)
 	r.Control(SendBroadcastCmd, 0)
@@ -161,6 +161,20 @@ func (t *GoNoolite) SetState(channel int, st bool) {
 		r.CommandToSend(On)
 	} else {
 		r.CommandToSend(Off)
+	}
+	t.sendChannel <- r.Serialize()
+}
+
+func (t *GoNoolite) SetDeviceState(id uint32, st bool) {
+	r := Request{}
+	r.Mode(FTX)
+	r.Control(SendCmdToGivenNLFAddress, 0)
+	r.Address(id)
+	r.CommandToSend(Write_State)
+	if st {
+		r.D2(1)
+	} else {
+		r.D2(0)
 	}
 	t.sendChannel <- r.Serialize()
 }

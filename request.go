@@ -52,6 +52,11 @@ func (t *Request) Address(addr uint32) *Request {
 	return t
 }
 
+func (t *Request) D2(value byte) *Request {
+	t.content[8] = value
+	return t
+}
+
 func (t *Request) Data(b0 byte, b1 byte, b2 byte, b3 byte) *Request {
 	t.content[6] = b0
 	t.content[7] = b1
