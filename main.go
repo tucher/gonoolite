@@ -87,12 +87,14 @@ func (t *GoNoolite) sender() {
 	t.port.ResetOutputBuffer()
 	time.Sleep(time.Second * 10)
 	// start := time.Now()
+	lastPollTime := time.Now()
 	for {
 		data := []byte{}
 		select {
 		case data = <-t.sendChannel:
 		default:
-			if t.IsPolling() {
+			if t.IsPolling() && time.Since(lastPollTime) > time.Second*2 {
+				lastPollTime = time.Now()
 				r := Request{}
 				r.Mode(FTX).Control(SendBroadcastCmd, 0).Channel(0).CommandToSend(Read_State)
 				data = r.Serialize()
