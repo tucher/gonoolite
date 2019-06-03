@@ -2,6 +2,7 @@ package gonoolite
 
 import (
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -21,6 +22,7 @@ type GoNoolite struct {
 	rcvFlagChan chan bool
 	checking    bool
 	mtx         sync.Mutex
+	logger      *log.Logger
 }
 
 func ListSerialPorts() ([]string, error) {
@@ -35,6 +37,12 @@ func WithPort(p string) optionFunc {
 	}
 }
 
+func WithLogger(logger *log.Logger) optionFunc {
+	return func(this *GoNoolite) {
+		this.logger = logger
+	}
+}
+
 func (t *GoNoolite) reader() {
 	t.port.ResetInputBuffer()
 	for {
@@ -45,7 +53,7 @@ func (t *GoNoolite) reader() {
 		default:
 		}
 		if err != nil {
-			log.Printf("RCV ERROR: %+v", err)
+			t.logger.Printf("RCV ERROR: %+v", err)
 			continue
 		}
 		if t.response.Mode() == FTX && t.response.CTR() == CommandDone && t.response.Command() == Send_State {
@@ -59,7 +67,7 @@ func (t *GoNoolite) reader() {
 					t.OnState(t.response.DevID(), false)
 				}
 			} else {
-				log.Printf("Bad status")
+				t.logger.Printf("Bad status")
 			}
 			continue
 		}
@@ -70,7 +78,7 @@ func (t *GoNoolite) reader() {
 			continue
 		}
 
-		log.Printf("Unknown response: %+v", t.response)
+		t.logger.Printf("Unknown response: %+v", t.response)
 
 	}
 }
@@ -113,6 +121,7 @@ func New(options ...optionFunc) (*GoNoolite, error) {
 		portName:    "/dev/ttyAMA0",
 		sendChannel: make(chan []byte),
 		rcvFlagChan: make(chan bool),
+		logger:      log.New(os.Stdout, "gonoolite", log.LstdFlags),
 	}
 	for _, o := range options {
 		o(new)
@@ -170,11 +179,11 @@ func (t *GoNoolite) SetDeviceState(id uint32, st bool) {
 	r.Mode(FTX)
 	r.Control(SendCmdToGivenNLFAddress, 0)
 	r.Address(id)
-	r.CommandToSend(Write_State)
+
 	if st {
-		r.D2(1)
+		r.CommandToSend(On)
 	} else {
-		r.D2(0)
+		r.CommandToSend(Off)
 	}
 	t.sendChannel <- r.Serialize()
 }

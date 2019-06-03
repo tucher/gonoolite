@@ -20,7 +20,7 @@ const (
 	ClearMemoredChannel      RequestEnumCTR = 5
 	ClearAllMemored          RequestEnumCTR = 6
 	UnbindAddressFromChannel RequestEnumCTR = 7
-	SendCmdToGivenNLFAddress RequestEnumCTR = 8
+	SendCmdToGivenNLFAddress RequestEnumCTR = 9
 )
 
 func (t *Request) Control(ctr RequestEnumCTR, numRetries int) *Request {
