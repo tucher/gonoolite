@@ -1,9 +1,9 @@
 module github.com/tucher/gonoolite
 
-go 1.12
+go 1.14
 
 require (
-	github.com/creack/goselect v0.1.0 // indirect
-	go.bug.st/serial.v1 v0.0.0-20180827123349-5f7892a7bb45
-	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
+	github.com/creack/goselect v0.1.1 // indirect
+	go.bug.st/serial.v1 v0.0.0-20191202182710-24a6610f0541
+	golang.org/x/sys v0.0.0-20200428200454-593003d681fa // indirect
 )

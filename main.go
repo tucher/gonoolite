@@ -23,6 +23,8 @@ type GoNoolite struct {
 	checking    bool
 	mtx         sync.Mutex
 	logger      *log.Logger
+
+	pollInterval time.Duration
 }
 
 func ListSerialPorts() ([]string, error) {
@@ -34,6 +36,12 @@ type optionFunc func(this *GoNoolite)
 func WithPort(p string) optionFunc {
 	return func(this *GoNoolite) {
 		this.portName = p
+	}
+}
+
+func WithPollInterval(pollInterval time.Duration) optionFunc {
+	return func(this *GoNoolite) {
+		this.pollInterval = pollInterval
 	}
 }
 
@@ -93,7 +101,7 @@ func (t *GoNoolite) sender() {
 		select {
 		case data = <-t.sendChannel:
 		default:
-			if t.IsPolling() && time.Since(lastPollTime) > time.Second*2 {
+			if t.IsPolling() && time.Since(lastPollTime) > t.pollInterval {
 				lastPollTime = time.Now()
 				r := Request{}
 				r.Mode(FTX).Control(SendBroadcastCmd, 0).Channel(0).CommandToSend(Read_State)
@@ -120,10 +128,11 @@ func (t *GoNoolite) sender() {
 }
 func New(options ...optionFunc) (*GoNoolite, error) {
 	new := &GoNoolite{
-		portName:    "/dev/ttyAMA0",
-		sendChannel: make(chan []byte),
-		rcvFlagChan: make(chan bool),
-		logger:      log.New(os.Stdout, "gonoolite", log.LstdFlags),
+		portName:     "/dev/ttyAMA0",
+		sendChannel:  make(chan []byte),
+		rcvFlagChan:  make(chan bool),
+		logger:       log.New(os.Stdout, "gonoolite", log.LstdFlags),
+		pollInterval: time.Second * 10,
 	}
 	for _, o := range options {
 		o(new)
